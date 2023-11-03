@@ -1,4 +1,4 @@
-package com.bxtdata.interview.interview.entity;
+package com.bxtdata.interview.interview.task1.entity;
 
 import java.util.HashSet;
 import java.util.LinkedList;
