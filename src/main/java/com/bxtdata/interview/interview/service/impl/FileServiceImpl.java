@@ -4,6 +4,7 @@ import com.bxtdata.interview.interview.mapper.BreakRecordMapper;
 import com.bxtdata.interview.interview.pojo.body.UploadingBody;
 import com.bxtdata.interview.interview.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -21,6 +22,8 @@ public class FileServiceImpl implements FileService {
 
     @Autowired
     private BreakRecordMapper breakRecordMapper;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     private static void addWatermark(BufferedImage image) {
         // 创建一个图形上下文
@@ -66,6 +69,7 @@ public class FileServiceImpl implements FileService {
         //上传文件
         byte[] decodedBytes = Base64.getDecoder().decode(extractFileString(body.getImage())); //获得base64图片数据部分
         String suffix = extractFileType(body.getImage()); //文件类型
+        System.out.println(suffix);
         if (suffix == null) throw new RuntimeException("文件格式异常");
         String fileName = body.getId() + "." + suffix; //文件名
         try {
@@ -83,7 +87,9 @@ public class FileServiceImpl implements FileService {
         }
 
         //更新状态
-        breakRecordMapper.updateStateById(body.getId(), 1);
+        breakRecordMapper.updateStateById(body.getId(), 2);
+        //删除key
+        redisTemplate.opsForSet().remove(CommodityServiceImpl.PULLED_KEY, body.getId());
         return fileName;
     }
 }
