@@ -1,6 +1,7 @@
 package com.bxtdata.interview.interview.task1.entity;
 
-public class Data {
+public class Resources {
+
     private String storeId;
     private String storeName;
 

@@ -1,14 +1,16 @@
 package com.bxtdata.interview.interview.task1.entity;
 
 
+import java.util.List;
+
 public class Result {
-    public Datum[] getData() {
+    private List<BaseDatum> data;
+
+    public List<BaseDatum> getData() {
         return data;
     }
 
-    public void setData(Datum[] data) {
+    public void setData(List<BaseDatum> data) {
         this.data = data;
     }
-
-    private Datum[] data;
 }

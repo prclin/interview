@@ -28,11 +28,11 @@ class InterviewApplicationTests {
     ObjectMapper mapper;
 
     private List<TagTreeNode> readTagLibrary() throws IOException {
+
         List<TagTreeNode> tagTree = new LinkedList<>();
         String filePath = new ClassPathResource("/static/标签词库1026.xlsx").getFile().getAbsolutePath();
         EasyExcel.read(filePath, Tag.class, new PageReadListener<Tag>(dataList -> {
             for (Tag tag : dataList) {
-                System.out.println(tag);
                 Set<String> names = new HashSet<>();
                 names.add(tag.getName());
                 List<TagTreeNode> children = insertNode(tagTree, new TagTreeNode(tag.getKey1(), new HashSet<>(names))).getChildren();
@@ -103,24 +103,49 @@ class InterviewApplicationTests {
                 Result result = mapper.readValue(record.get(4), Response.class).getResult();
                 if (result == null) continue;
 
-                Datum[] data = result.getData();
-                for (int i = 0; i < data.length; i++) {
-                    if (outSet.contains(data[i].getData().getStoreId())) continue;
-                    outSet.add(data[i].getData().getStoreId());
-                    csvPrinter.print(record.get(1));
-                    csvPrinter.print(data[i].getData().getStoreId());
-                    String storeName = data[i].getData().getStoreName();
-                    if (storeName != null) {
-                        csvPrinter.print(storeName);
-                        Set<String> tagSet = findTag(tagTree, storeName);
-                        StringBuilder tags = new StringBuilder();
-                        for (String s : tagSet) {
-                            tags.append(s);
-                            tags.append(" ");
+                List<BaseDatum> datums = result.getData();
+
+                for (int i = 0; i < datums.size(); i++) {
+                    BaseDatum datum = datums.get(i);
+                    if (datum instanceof Datum1 datum1) {
+                        Data1 data1 = datum1.getData();
+                        if (outSet.contains(data1.getStoreId())) continue;
+                        outSet.add(data1.getStoreId());
+                        csvPrinter.print(record.get(1));
+                        csvPrinter.print(data1.getStoreId());
+                        String storeName = data1.getStoreName();
+                        if (storeName != null) {
+                            csvPrinter.print(storeName);
+                            Set<String> tagSet = findTag(tagTree, storeName);
+                            StringBuilder tags = new StringBuilder();
+                            for (String s : tagSet) {
+                                tags.append(s);
+                                tags.append(" ");
+                            }
+                            csvPrinter.print(tags.toString());
                         }
-                        csvPrinter.print(tags.toString());
+                        csvPrinter.println();
+                    } else if (datum instanceof Datum103 datum103) {
+                        Data103 data103 = datum103.getData();
+                        Resources resources = data103.getResources();
+                        if (outSet.contains(resources.getStoreId())) continue;
+                        outSet.add(data103.getStoreId());
+                        csvPrinter.print(record.get(1));
+                        csvPrinter.print(resources.getStoreId());
+                        String storeName = resources.getStoreName();
+                        if (storeName != null) {
+                            csvPrinter.print(storeName);
+                            Set<String> tagSet = findTag(tagTree, storeName);
+                            StringBuilder tags = new StringBuilder();
+                            for (String s : tagSet) {
+                                tags.append(s);
+                                tags.append(" ");
+                            }
+                            csvPrinter.print(tags.toString());
+                        }
+                        csvPrinter.println();
                     }
-                    csvPrinter.println();
+
                 }
             }
             csvPrinter.flush();
