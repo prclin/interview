@@ -65,9 +65,7 @@ class InterviewApplicationTests {
                 for (TagTreeNode child2 : children2) {
                     if (storeName.contains(child2.getKey())) strings.addAll(child2.getNames());
                 }
-                strings.addAll(child.getNames());
             }
-            strings.addAll(node.getNames());
         }
         return strings;
     }
