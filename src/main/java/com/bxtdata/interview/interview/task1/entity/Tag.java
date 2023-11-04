@@ -1,7 +1,5 @@
 package com.bxtdata.interview.interview.task1.entity;
 
-import java.util.stream.Stream;
-
 public class Tag {
     private String key1;
     private String key2;
@@ -44,6 +42,7 @@ public class Tag {
     }
 
     public String getName() {
+        if (name == null) name = "";
         return name;
     }
 

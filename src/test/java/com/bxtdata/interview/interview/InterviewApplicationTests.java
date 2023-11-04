@@ -16,10 +16,8 @@ import org.springframework.util.ResourceUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.ToIntFunction;
 
 @SpringBootTest
 class InterviewApplicationTests {
@@ -33,11 +31,9 @@ class InterviewApplicationTests {
         String filePath = new ClassPathResource("/static/标签词库1026.xlsx").getFile().getAbsolutePath();
         EasyExcel.read(filePath, Tag.class, new PageReadListener<Tag>(dataList -> {
             for (Tag tag : dataList) {
-                Set<String> names = new HashSet<>();
-                names.add(tag.getName());
-                List<TagTreeNode> children = insertNode(tagTree, new TagTreeNode(tag.getKey1(), new HashSet<>(names))).getChildren();
-                List<TagTreeNode> children1 = insertNode(children, new TagTreeNode(tag.getKey2(), new HashSet<>(names))).getChildren();
-                insertNode(children1, new TagTreeNode(tag.getKey3(), new HashSet<>(names)));
+                List<TagTreeNode> children = insertNode(tagTree, new TagTreeNode(tag.getKey1(), tag.getName())).getChildren();
+                List<TagTreeNode> children1 = insertNode(children, new TagTreeNode(tag.getKey2(), tag.getName())).getChildren();
+                insertNode(children1, new TagTreeNode(tag.getKey3(), tag.getName()));
             }
         })).sheet().doRead();
         return tagTree;
@@ -46,7 +42,6 @@ class InterviewApplicationTests {
     private TagTreeNode insertNode(List<TagTreeNode> tree, TagTreeNode node) {
         for (TagTreeNode tagTreeNode : tree) {
             if (tagTreeNode.getKey().equals(node.getKey())) {
-                tagTreeNode.addNames(node.getNames());
                 return tagTreeNode;
             }
         }
@@ -54,20 +49,20 @@ class InterviewApplicationTests {
         return node;
     }
 
-    private Set<String> findTag(List<TagTreeNode> tree, String storeName) {
-        Set<String> strings = new HashSet<>();
-        for (TagTreeNode node : tree) {
-            if (!storeName.contains(node.getKey())) continue;
-            List<TagTreeNode> children1 = node.getChildren();
-            for (TagTreeNode child : children1) {
-                if (!storeName.contains(child.getKey())) continue;
-                List<TagTreeNode> children2 = node.getChildren();
-                for (TagTreeNode child2 : children2) {
-                    if (storeName.contains(child2.getKey())) strings.addAll(child2.getNames());
-                }
-            }
+    private String findTag(List<TagTreeNode> tree, String storeName) {
+        List<TagTreeNode> match = new LinkedList<>(tree);
+        for (int i = 0; i < 2; i++) {
+            match = match.stream()
+                    .filter(node -> storeName.contains(node.getKey()))//过滤
+                    .flatMap(node -> node.getChildren().stream())
+                    .sorted(Comparator.comparingInt((ToIntFunction<TagTreeNode>) value -> value.getName().length()).reversed())//key长度降序排序
+                    .toList();
         }
-        return strings;
+
+        Optional<TagTreeNode> max = match.stream()
+                .filter(node -> storeName.contains(node.getKey()))
+                .max(Comparator.comparingInt(value -> value.getName().length()));
+        return max.isPresent() ? max.get().getName() : "";
     }
 
     @Test
@@ -114,13 +109,8 @@ class InterviewApplicationTests {
                         String storeName = data1.getStoreName();
                         if (storeName != null) {
                             csvPrinter.print(storeName);
-                            Set<String> tagSet = findTag(tagTree, storeName);
-                            StringBuilder tags = new StringBuilder();
-                            for (String s : tagSet) {
-                                tags.append(s);
-                                tags.append(" ");
-                            }
-                            csvPrinter.print(tags.toString());
+                            String tag = findTag(tagTree, storeName);
+                            csvPrinter.print(tag);
                         }
                         csvPrinter.println();
                     } else if (datum instanceof Datum103 datum103) {
@@ -133,13 +123,8 @@ class InterviewApplicationTests {
                         String storeName = resources.getStoreName();
                         if (storeName != null) {
                             csvPrinter.print(storeName);
-                            Set<String> tagSet = findTag(tagTree, storeName);
-                            StringBuilder tags = new StringBuilder();
-                            for (String s : tagSet) {
-                                tags.append(s);
-                                tags.append(" ");
-                            }
-                            csvPrinter.print(tags.toString());
+                            String tag = findTag(tagTree, storeName);
+                            csvPrinter.print(tag);
                         }
                         csvPrinter.println();
                     }
