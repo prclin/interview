@@ -96,7 +96,7 @@ class InterviewApplicationTests {
                 Result result = mapper.readValue(record.get(4), Response.class).getResult();
                 if (result == null) continue;
 
-                List<BaseDatum> datums = result.getData();
+                List<BaseDatum> datums = result.getData() == null ? Collections.emptyList() : result.getData();
 
                 for (int i = 0; i < datums.size(); i++) {
                     BaseDatum datum = datums.get(i);
