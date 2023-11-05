@@ -6,6 +6,9 @@ import com.bxtdata.interview.interview.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.ResourceUtils;
 
 import javax.imageio.ImageIO;
@@ -24,6 +27,9 @@ public class FileServiceImpl implements FileService {
     private BreakRecordMapper breakRecordMapper;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     private static void addWatermark(BufferedImage image) {
         // 创建一个图形上下文
@@ -72,6 +78,7 @@ public class FileServiceImpl implements FileService {
         System.out.println(suffix);
         if (suffix == null) throw new RuntimeException("文件格式异常");
         String fileName = body.getId() + "." + suffix; //文件名
+        TransactionStatus transaction = null;
         try {
             String filePath = ResourceUtils.getURL("classpath:static").getPath() + "/" + fileName;
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(decodedBytes));
@@ -80,16 +87,17 @@ public class FileServiceImpl implements FileService {
             //保存文件
             File file = new File(filePath);
             ImageIO.write(image, suffix, file);
-
+            transaction = transactionManager.getTransaction(new DefaultTransactionDefinition());
+            //更新状态
+            boolean b = breakRecordMapper.updateStateById(body.getId(), 2, 1);
+            transactionManager.commit(transaction);
+            //删除key
+            redisTemplate.opsForSet().remove(CommodityServiceImpl.PULLED_KEY, body.getId());
+            return b ? fileName : "";
         } catch (Exception e) {
+            if (transaction != null) transactionManager.rollback(transaction);
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-
-        //更新状态
-        breakRecordMapper.updateStateById(body.getId(), 2);
-        //删除key
-        redisTemplate.opsForSet().remove(CommodityServiceImpl.PULLED_KEY, body.getId());
-        return fileName;
     }
 }

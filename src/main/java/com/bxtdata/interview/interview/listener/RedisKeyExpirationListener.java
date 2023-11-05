@@ -32,8 +32,7 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
         super.doRegister(listenerContainer);
         //初始化expired key
         redisTemplate.opsForValue().set(CommodityServiceImpl.EXPIRED_PULLED_KEY, 1);
-        redisTemplate.expire(CommodityServiceImpl.EXPIRED_PULLED_KEY, Duration.ofMinutes(2));
-        breakRecordMapper.BatchUpdateState(0, 1);
+        breakRecordMapper.BatchUpdateState(0, 1); //重置未处理
     }
 
     @Override

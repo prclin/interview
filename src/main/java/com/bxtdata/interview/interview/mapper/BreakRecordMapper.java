@@ -12,8 +12,8 @@ public interface BreakRecordMapper {
     @Select("select id,batch_no,platform_name,page_url,sku_id,state from break_record where batch_no=#{batchNo} and platform_name=#{platformName} and state=0 limit #{count} for update")
     List<BreakRecordPO> selectForUpdateBy(@Param("batchNo") String batchNo, @Param("platformName") String platformName, @Param("count") int count);
 
-    @Update("update break_record set state =#{state} where id = #{id}")
-    void updateStateById(@Param("id") long id, @Param("state") int state);
+    @Update("update break_record set state =#{state} where id = #{id} and state=#{exceptedState}")
+    boolean updateStateById(@Param("id") long id, @Param("state") int state, @Param("exceptedState") int exceptedState);
 
     @UpdateProvider(type = BreakRecordProvider.class, method = "BatchUpdateStateById")
     void BatchUpdateStateById(long[] ids, @Param("state") int state, @Param("exceptedState") int exceptedState);

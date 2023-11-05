@@ -23,7 +23,7 @@ public class FileController {
         HashMap<String, Object> map = new HashMap<>();
         String path = fileService.saveBase64Image(body);
         map.put("url", path);
-        map.put("status", true);
+        map.put("status", path.isEmpty());
         return map;
     }
 
