@@ -18,6 +18,9 @@ public interface BreakRecordMapper {
     @UpdateProvider(type = BreakRecordProvider.class, method = "BatchUpdateStateById")
     void BatchUpdateStateById(long[] ids, @Param("state") int state, @Param("exceptedState") int exceptedState);
 
+    @Update("update break_record set state =#{state} where state = #{exceptedState}")
+    void BatchUpdateState(@Param("state") int state, @Param("exceptedState") int exceptedState);
+
     class BreakRecordProvider {
 
         public String BatchUpdateStateById(long[] ids, @Param("state") int state, @Param("exceptedState") int exceptedState) {

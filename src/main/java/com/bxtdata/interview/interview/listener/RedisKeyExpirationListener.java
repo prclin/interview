@@ -21,6 +21,7 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
     @Autowired
     private BreakRecordMapper breakRecordMapper;
 
+
     public RedisKeyExpirationListener(RedisMessageListenerContainer listenerContainer) {
         super(listenerContainer);
     }
@@ -32,6 +33,7 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
         //初始化expired key
         redisTemplate.opsForValue().set(CommodityServiceImpl.EXPIRED_PULLED_KEY, 1);
         redisTemplate.expire(CommodityServiceImpl.EXPIRED_PULLED_KEY, Duration.ofMinutes(2));
+        breakRecordMapper.BatchUpdateState(0, 1);
     }
 
     @Override
